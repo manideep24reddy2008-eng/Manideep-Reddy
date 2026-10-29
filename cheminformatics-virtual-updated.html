@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cheminformatics Virtual Laboratory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface-2: #24243e;
+      --border: #2e2e4a;
+      --primary: #7c5cff;
+      --primary-glow: rgba(124, 92, 255, 0.35);
+      --accent: #00e5c0;
+      --accent-2: #ff6b9d;
+      --warning: #ffb84d;
+      --text: #f0f0f8;
+      --text-muted: #a0a0b8;
+      --success: #3dff9a;
+      --sidebar-w: 280px;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124, 92, 255, 0.25), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0, 229, 192, 0.15), transparent),
+        radial-gradient(ellipse 50% 30% at 50% 100%, rgba(255, 107, 157, 0.12), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #16162a 0%, #12121f 100%);
+      border-right: 1px solid var(--border);
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      padding: 1.4rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-brand .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .sidebar-brand h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-section {
+      padding: 1.25rem 1rem 0.5rem;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      padding-left: 0.5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 0.25rem;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(124, 92, 255, 0.2), rgba(0, 229, 192, 0.08));
+      color: #fff;
+      border-color: rgba(124, 92, 255, 0.4);
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .nav-item .icon {
+      font-size: 1.1rem;
+      width: 22px;
+      text-align: center;
+    }
+
+    .student-card {
+      margin: 1rem;
+      padding: 1.1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .student-card h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent);
+    }
+
+    .field {
+      margin-bottom: 0.85rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .objectives {
+      margin: 0 1rem 1.5rem;
+      padding: 1.1rem;
+      background: linear-gradient(145deg, rgba(124, 92, 255, 0.08), rgba(0, 229, 192, 0.05));
+      border: 1px solid rgba(124, 92, 255, 0.25);
+      border-radius: var(--radius);
+    }
+
+    .objectives h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .objectives ul {
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .objectives li::before {
+      content: '▸';
+      color: var(--accent);
+      margin-right: 0.45rem;
+      font-weight: 700;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 2rem 2.5rem 3rem;
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .header .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(90deg, rgba(124, 92, 255, 0.25), rgba(0, 229, 192, 0.15));
+      border: 1px solid rgba(124, 92, 255, 0.4);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      letter-spacing: 0.03em;
+    }
+
+    .header h1 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, var(--primary) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .header .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .header .subtitle strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.6rem 1.8rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section p.lead {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.55;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.7rem 0.9rem;
+      background: var(--surface-2);
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .feature:hover {
+      border-color: rgba(0, 229, 192, 0.35);
+      background: rgba(0, 229, 192, 0.06);
+    }
+
+    .feature .check {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, var(--accent), #00c4a7);
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-size: 0.75rem;
+      color: #0a0a12;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .feature span {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Molecules table */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead {
+      background: linear-gradient(90deg, rgba(124, 92, 255, 0.2), rgba(0, 229, 192, 0.1));
+    }
+
+    th {
+      text-align: left;
+      padding: 0.9rem 1.1rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    td {
+      padding: 0.85rem 1.1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    tbody tr {
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(124, 92, 255, 0.08);
+    }
+
+    .mol-name {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .smiles {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--accent);
+      background: rgba(0, 229, 192, 0.08);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      margin-left: 0.5rem;
+    }
+
+    .tag.pharma {
+      background: rgba(255, 107, 157, 0.2);
+      color: var(--accent-2);
+      border: 1px solid rgba(255, 107, 157, 0.35);
+    }
+
+    .tag.common {
+      background: rgba(124, 92, 255, 0.15);
+      color: #b8a8ff;
+      border: 1px solid rgba(124, 92, 255, 0.3);
+    }
+
+    /* SMILES input playground */
+    .playground {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .playground input {
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    .playground input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .btn {
+      padding: 0.75rem 1.4rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #5a3fd4);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px var(--primary-glow);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent), #00c4a7);
+      color: #0a0a12;
+    }
+
+    .result-box {
+      margin-top: 1rem;
+      padding: 1rem 1.2rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 48px;
+      display: none;
+    }
+
+    .result-box.show {
+      display: block;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Developed by */
+    .credits {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.3rem 1.5rem;
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08), rgba(124, 92, 255, 0.08));
+      border: 1px solid rgba(255, 107, 157, 0.25);
+      border-radius: 14px;
+      margin-top: 0.5rem;
+    }
+
+    .credits .avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent-2), var(--primary));
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .credits h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+
+    .credits p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .credits a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .credits a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Mobile */
+    @media (max-width: 860px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main {
+        margin-left: 0;
+        padding: 1.25rem;
+      }
+      .header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">🧪</div>
+      <h1>Virtual Lab</h1>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Navigation</div>
+      <div class="nav-item active" data-page="home">
+        <span class="icon">🏠</span> Home
+      </div>
+      <div class="nav-item" data-page="theory">
+        <span class="icon">📘</span> Theory
+      </div>
+      <div class="nav-item" data-page="viz">
+        <span class="icon">🧬</span> Molecular Visualization
+      </div>
+      <div class="nav-item" data-page="properties">
+        <span class="icon">📊</span> Molecular Properties
+      </div>
+      <div class="nav-item" data-page="analysis">
+        <span class="icon">🔬</span> Structure–Property Analysis
+      </div>
+      <div class="nav-item" data-page="assessment">
+        <span class="icon">📝</span> Assessment
+      </div>
+      <div class="nav-item" data-page="report">
+        <span class="icon">📄</span> Final Project Report
+      </div>
+    </div>
+
+    <div class="student-card">
+      <h3>👤 Student Information</h3>
+      <div class="field">
+        <label>Student Name</label>
+        <input type="text" id="studentName" placeholder="Enter your name" />
+      </div>
+      <div class="field">
+        <label>Registration Number</label>
+        <input type="text" id="regNumber" placeholder="e.g. RA2211003xxxx" />
+      </div>
+    </div>
+
+    <div class="objectives">
+      <h3>🎯 Learning Objectives</h3>
+      <ul>
+        <li>SMILES notation</li>
+        <li>Molecular representation</li>
+        <li>2D & 3D visualization</li>
+        <li>Molecular descriptors</li>
+        <li>Structure–property relationships</li>
+        <li>Pharma molecule analysis</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="badge">🧪 Interactive Learning Platform</div>
+      <h1>Cheminformatics Virtual Laboratory</h1>
+      <p class="subtitle">Department of Computer Science and Engineering (AI/ML) · Section E</p>
+    </header>
+
+    <section class="section">
+      <h2>✨ Welcome to the Virtual Laboratory</h2>
+      <p class="lead">
+        This interactive virtual laboratory helps students explore cheminformatics and computational chemistry
+        with a special focus on pharmaceutical molecules and drug-like structures.
+      </p>
+
+      <h3 style="font-size:1rem;margin-bottom:0.9rem;color:var(--accent);">What can students do?</h3>
+      <div class="features">
+        <div class="feature"><div class="check">✓</div><span>Enter any SMILES notation</span></div>
+        <div class="feature"><div class="check">✓</div><span>Validate molecular structures</span></div>
+        <div class="feature"><div class="check">✓</div><span>Generate 2D structures</span></div>
+        <div class="feature"><div class="check">✓</div><span>Generate interactive 3D structures</span></div>
+        <div class="feature"><div class="check">✓</div><span>Select visualization styles</span></div>
+        <div class="feature"><div class="check">✓</div><span>Calculate molecular properties</span></div>
+        <div class="feature"><div class="check">✓</div><span>Download molecular reports</span></div>
+        <div class="feature"><div class="check">✓</div><span>Compare multiple molecules</span></div>
+        <div class="feature"><div class="check">✓</div><span>Analyze pharmaceutical compounds</span></div>
+        <div class="feature"><div class="check">✓</div><span>Complete an assessment</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>💊 Example Molecules</h2>
+      <p class="lead">Explore these pharmaceutical molecules. Click any row to load its SMILES into the playground below.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Molecule</th>
+              <th>Class</th>
+              <th>SMILES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="loadSmiles('CC(=O)Nc1ccc(O)cc1')">
+              <td><span class="mol-name">Paracetamol</span></td>
+              <td><span class="tag pharma">Analgesic</span></td>
+              <td><span class="smiles">CC(=O)Nc1ccc(O)cc1</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CC(C)Cc1ccc(C(C)C(=O)O)cc1')">
+              <td><span class="mol-name">Ibuprofen</span></td>
+              <td><span class="tag pharma">NSAID</span></td>
+              <td><span class="smiles">CC(C)Cc1ccc(C(C)C(=O)O)cc1</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CN(C)C(=N)NC(=N)N')">
+              <td><span class="mol-name">Metformin</span></td>
+              <td><span class="tag pharma">Antidiabetic</span></td>
+              <td><span class="smiles">CN(C)C(=N)NC(=N)N</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CC(C)NCC(O)c1ccc(O)c(CO)c1')">
+              <td><span class="mol-name">Salbutamol</span></td>
+              <td><span class="tag pharma">Bronchodilator</span></td>
+              <td><span class="smiles">CC(C)NCC(O)c1ccc(O)c(CO)c1</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O')">
+              <td><span class="mol-name">Penicillin G</span></td>
+              <td><span class="tag pharma">Antibiotic</span></td>
+              <td><span class="smiles">CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O</span></td>
+            </tr>
+            <tr onclick="loadSmiles('COc1ccc2c(c1)c(CC(=O)O)c(C)n2C(=O)c3ccc(Cl)cc3')">
+              <td><span class="mol-name">Indomethacin</span></td>
+              <td><span class="tag pharma">NSAID</span></td>
+              <td><span class="smiles">COc1ccc2c(c1)c(CC(=O)O)c(C)n2C(=O)c3ccc(Cl)cc3</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CC(C)NCC(O)COc1ccccc1C=C')">
+              <td><span class="mol-name">Propranolol</span></td>
+              <td><span class="tag pharma">Beta-blocker</span></td>
+              <td><span class="smiles">CC(C)NCC(O)COc1ccccc1C=C</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CN1C(=O)CN=C(c2ccccc2)c3cc(Cl)ccc13')">
+              <td><span class="mol-name">Diazepam</span></td>
+              <td><span class="tag pharma">Anxiolytic</span></td>
+              <td><span class="smiles">CN1C(=O)CN=C(c2ccccc2)c3cc(Cl)ccc13</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CC(=O)Oc1ccccc1C(=O)Nc2ncc(s2)[N+](=O)[O-]')">
+              <td><span class="mol-name">Nitazoxanide</span></td>
+              <td><span class="tag pharma">Antiparasitic</span></td>
+              <td><span class="smiles">CC(=O)Oc1ccccc1C(=O)Nc2ncc(s2)[N+](=O)[O-]</span></td>
+            </tr>
+            <tr onclick="loadSmiles('CCc1ccc(cc1)C(C)C(=O)O')">
+              <td><span class="mol-name">Naproxen</span></td>
+              <td><span class="tag pharma">NSAID</span></td>
+              <td><span class="smiles">CCc1ccc(cc1)C(C)C(=O)O</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:1rem;margin:1.5rem 0 0.75rem;color:var(--primary);">Try a SMILES string</h3>
+      <div class="playground">
+        <input type="text" id="smilesInput" placeholder="Paste or type a SMILES string…" value="CC(=O)Nc1ccc(O)cc1" />
+        <button class="btn btn-primary" onclick="analyzeSmiles()">Analyze</button>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </section>
+
+    <section class="section">
+      <h2>👨‍🎓 Developed by</h2>
+      <div class="credits">
+        <div class="avatar">🎓</div>
+        <div>
+          <h4>Banka Venkata Manideep Reddy</h4>
+          <p>
+            Student<br />
+            Department of Computer Science and Engineering (AI/ML)<br />
+            Section E<br />
+            SRM Institute of Science and Technology, Tiruchirappalli
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Cheminformatics Virtual Laboratory · Built with HTML, CSS & JavaScript
+    </footer>
+  </main>
+
+  <script>
+    // Navigation highlight
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+
+    function loadSmiles(smiles) {
+      document.getElementById('smilesInput').value = smiles;
+      analyzeSmiles();
+    }
+
+    function analyzeSmiles() {
+      const input = document.getElementById('smilesInput').value.trim();
+      const box = document.getElementById('resultBox');
+      if (!input) {
+        box.classList.add('show');
+        box.textContent = 'Please enter a SMILES string.';
+        return;
+      }
+
+      // Simple client-side checks (demo only)
+      const hasAtoms = /[A-Za-z]/.test(input);
+      const balanced = (input.match(/\(/g) || []).length === (input.match(/\)/g) || []).length;
+      const length = input.length;
+      const hasAromatic = /[a-z]/.test(input);
+      const hasRings = /\d/.test(input);
+
+      let status = hasAtoms && balanced ? '✓ Looks like a valid SMILES structure' : '⚠ Possible syntax issue — check brackets';
+      let details = [
+        `Length: ${length} characters`,
+        hasAromatic ? 'Contains aromatic atoms' : 'No aromatic atoms detected',
+        hasRings ? 'Contains ring closures' : 'No ring numbers found',
+        balanced ? 'Parentheses balanced' : 'Unbalanced parentheses'
+      ].join(' · ');
+
+      box.classList.add('show');
+      box.innerHTML = `<strong>${status}</strong><br/><span style="color:var(--text-muted)">${details}</span>`;
+    }
+
+    // Pre-run once
+    analyzeSmiles();
+  </script>
+</body>
+</html>
